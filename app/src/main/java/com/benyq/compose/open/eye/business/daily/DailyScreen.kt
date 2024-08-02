@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
@@ -25,7 +26,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Share
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -46,10 +47,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.benyq.compose.open.eye.common.noRippleClick
+import com.benyq.compose.open.eye.common.widget.Error
+import com.benyq.compose.open.eye.common.widget.Loading
 import com.benyq.compose.open.eye.model.Item
 import com.benyq.compose.open.eye.model.ItemData
+import com.benyq.compose.open.eye.nav.LocalNavController
 import com.benyq.compose.open.eye.tools.DateTool
 import com.benyq.compose.open.eye.ui.theme.Black54
 import com.benyq.compose.open.eye.ui.theme.White54
@@ -59,9 +64,10 @@ import java.util.TimerTask
 import kotlin.math.abs
 
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun DailyScreen(viewModel: DailyViewModel = viewModel()) {
+    val navController = LocalNavController.current
+
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
@@ -89,12 +95,6 @@ fun DailyScreen(viewModel: DailyViewModel = viewModel()) {
         }
         val dailyData = viewModel.pageFlow.collectAsLazyPagingItems()
 
-        val pullRefreshState = rememberPullRefreshState(
-            refreshing = dailyData.loadState.refresh == LoadState.Loading,
-            onRefresh = {
-                dailyData.refresh()
-            })
-
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -106,17 +106,6 @@ fun DailyScreen(viewModel: DailyViewModel = viewModel()) {
                 contentPadding = PaddingValues(horizontal = 15.dp, vertical = 15.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-
-                when (dailyData.loadState.refresh) {
-                    is LoadState.Loading -> {}
-                    is LoadState.Error -> {
-                        item {
-                            Text(text = "加载失败1")
-                        }
-                    }
-
-                    is LoadState.NotLoading -> {}
-                }
 
                 items(count = dailyData.itemCount) { index ->
                     val itemData = dailyData[index]
@@ -134,8 +123,13 @@ fun DailyScreen(viewModel: DailyViewModel = viewModel()) {
                 when (dailyData.loadState.append) {
                     is LoadState.Loading -> {
                         item {
-                            CircularProgressIndicator()
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentWidth(Alignment.CenterHorizontally)
+                            )
                         }
+
                     }
 
                     is LoadState.Error -> {
@@ -150,13 +144,21 @@ fun DailyScreen(viewModel: DailyViewModel = viewModel()) {
                 }
             }
 
-            PullRefreshIndicator(refreshing = dailyData.loadState.refresh == LoadState.Loading,
-                state = pullRefreshState,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .graphicsLayer {
-                        translationY = -160f
+            when (dailyData.loadState.refresh) {
+                is LoadState.Loading -> {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        Loading(modifier = Modifier.align(Alignment.Center))
+                    }
+                }
+
+                is LoadState.Error -> {
+                    Error(title = "加载失败, 点击重新加载", retry = {
+                        dailyData.refresh()
                     })
+                }
+
+                is LoadState.NotLoading -> {}
+            }
         }
 
     }
@@ -265,7 +267,7 @@ private fun BannerComponent(banners: List<Item>) {
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(7 / 3f)
+                    .aspectRatio(7 / 4f)
                     .graphicsLayer {
                         val scale = 1f - abs(pageState.currentPageOffsetFraction) * 0.5f
                         scaleX = scale

@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.benyq.compose.open.eye.business.SplashScreen
+import com.benyq.compose.open.eye.business.daily.DailyScreen
 import com.benyq.compose.open.eye.business.main.MainScreen
 
 val LocalNavController = compositionLocalOf<NavHostController> { error("No NavController provided") }

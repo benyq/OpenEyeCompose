@@ -3,7 +3,9 @@ package com.benyq.compose.open.eye.business.daily
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.benyq.compose.open.eye.http.OpenEyeApi
+import com.benyq.compose.open.eye.model.Daily
 import com.benyq.compose.open.eye.model.Item
+import kotlinx.coroutines.delay
 
 class DailyPagingSource(
     private val openEyeApi: OpenEyeApi,
@@ -17,7 +19,12 @@ class DailyPagingSource(
             var nextKey: String? = null
             val nextPageUrl: String?
             val daily = if (pageKey.isNullOrEmpty()) {
-                openEyeApi.getDaily()
+                val d1 = openEyeApi.getDaily()
+                var d2: Daily? = null
+                if (d1.nextPageUrl != null) {
+                    d2 = openEyeApi.getDaily(d1.nextPageUrl)
+                }
+                d1 + d2
             } else {
                 openEyeApi.getDaily(pageKey)
             }
