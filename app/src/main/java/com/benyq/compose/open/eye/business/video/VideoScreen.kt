@@ -1,8 +1,18 @@
 package com.benyq.compose.open.eye.business.video
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.ExperimentalTransitionApi
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateValueAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.rememberTransition
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -513,28 +523,42 @@ private fun Video(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun AnimatedText(targetText: String, modifier: Modifier = Modifier, duration: Long = 1000L) {
-
-    val animatedText = remember { mutableStateOf("") }
-
+fun AnimatedText(targetText: String, modifier: Modifier = Modifier) {
+    var visible by remember { mutableStateOf(false) }
+    val transition = updateTransition(targetState = visible, label = "visibility")
+    val progress by transition.animateFloat(
+        transitionSpec = { if (targetState) tween(durationMillis = 1000) else snap() },
+        label = "progress"
+    ) { state ->
+        if (state) 1f else 0f
+    }
     LaunchedEffect(targetText) {
-        animatedText.value = ""
-        var index = 0
-        while (index < targetText.length) {
-            delay((duration / targetText.length).coerceAtLeast(1)) // 调整延迟时间来改变打字的速度
-            animatedText.value += targetText[index]
-            index++
+        if (visible) {
+            visible = false
+            awaitFrame()
+            visible = true
+        }else {
+            visible = true
         }
     }
+
+    val visibleTextLength = (targetText.length * progress).toInt()
+    val visibleText = targetText.take(visibleTextLength)
+
     Text(
-        text = animatedText.value,
+        text = buildAnnotatedString {
+            append(visibleText)
+            withStyle(style = SpanStyle(color = Color.Transparent)) {
+                append(targetText.drop(visibleTextLength))
+            }
+        },
         modifier = modifier,
         fontSize = 16.sp,
         color = Color.White,
         fontWeight = FontWeight.Bold
     )
-
 }
+
 
 @Composable
 @Preview
