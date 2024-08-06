@@ -6,6 +6,7 @@ import com.benyq.compose.open.eye.model.Follow
 import com.benyq.compose.open.eye.model.Issue
 import com.benyq.compose.open.eye.model.News
 import com.benyq.compose.open.eye.model.Recommend
+import com.benyq.compose.open.eye.model.Reply
 import com.benyq.compose.open.eye.model.SpecialTopics
 import com.benyq.compose.open.eye.model.TabListInfo
 import com.benyq.compose.open.eye.model.TopicDetail
@@ -63,6 +64,12 @@ interface OpenEyeApi {
 
     @GET("v3/lightTopics/internal/{topicId}")
     suspend fun getTopicDetail(@Path("topicId") topicId: Int): TopicDetail
+
+    @GET("v2/replies/video")
+    suspend fun getVideoReply(@Query("videoId") videoId: Int, @Query("lastId") lastId: Int? = null): Reply
+
+    @GET("v2/replies/hot")
+    suspend fun getHotVideoReply(@Query("videoId") videoId: Int, @Query("lastId") lastId: Int? = null): Reply
 
 }
 

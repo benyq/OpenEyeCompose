@@ -44,6 +44,7 @@ import com.benyq.compose.open.eye.business.daily.DailyScreen
 import com.benyq.compose.open.eye.business.disvocery.DiscoverScreen
 import com.benyq.compose.open.eye.business.hot.HotScreen
 import com.benyq.compose.open.eye.business.mine.MineScreen
+import com.benyq.compose.open.eye.common.SetAppearanceStatusBar
 import com.benyq.compose.open.eye.common.noRippleClick
 import com.benyq.compose.open.eye.nav.Destinations
 import com.benyq.compose.open.eye.nav.LocalNavController
@@ -53,6 +54,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainScreen() {
+    SetAppearanceStatusBar(true)
     MainBackPressHandler {
         showToast("Hello")
     }

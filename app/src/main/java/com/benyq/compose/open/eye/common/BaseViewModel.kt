@@ -43,7 +43,7 @@ open class BaseViewModel: ViewModel() {
             emit(DataState.Success(response))
         }.flowOn(Dispatchers.IO)
             .onStart { emit(DataState.Loading(true)) }
-            .catch { DataState.Error<T>(it) }
+            .catch { emit(DataState.Error<T>(it)) }
             .onCompletion {
                 emit(DataState.Loading(false))
             }

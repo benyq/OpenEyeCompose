@@ -22,12 +22,9 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Share
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -47,18 +44,21 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
-import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import com.benyq.compose.open.eye.common.L
 import com.benyq.compose.open.eye.common.noRippleClick
 import com.benyq.compose.open.eye.common.widget.Error
 import com.benyq.compose.open.eye.common.widget.Loading
 import com.benyq.compose.open.eye.model.Item
 import com.benyq.compose.open.eye.model.ItemData
+import com.benyq.compose.open.eye.nav.Destinations
 import com.benyq.compose.open.eye.nav.LocalNavController
 import com.benyq.compose.open.eye.tools.DateTool
 import com.benyq.compose.open.eye.ui.theme.Black54
 import com.benyq.compose.open.eye.ui.theme.White54
+import com.google.gson.Gson
 import kotlinx.coroutines.launch
+import java.net.URLEncoder
 import java.util.Timer
 import java.util.TimerTask
 import kotlin.math.abs
@@ -115,7 +115,10 @@ fun DailyScreen(viewModel: DailyViewModel = viewModel()) {
                         } else if (itemData.type == "textHeader") {
                             TitleItemWidget(it.data)
                         } else {
-                            DailyItem(it.data)
+                            DailyItem(it.data) {
+                                val json = Gson().toJson(itemData.data)
+                                navController.navigate(Destinations.Video.createRoute(URLEncoder.encode(json, "utf-8")))
+                            }
                         }
                     }
                 }
@@ -166,9 +169,11 @@ fun DailyScreen(viewModel: DailyViewModel = viewModel()) {
 
 
 @Composable
-private fun DailyItem(item: ItemData?, modifier: Modifier = Modifier) {
+private fun DailyItem(item: ItemData?, modifier: Modifier = Modifier, onClick: (ItemData) -> Unit = {}) {
     if (item == null) return
-    Column(modifier = modifier) {
+    Column(modifier = modifier.noRippleClick {
+        onClick(item)
+    }) {
         Box {
             Image(
                 painter = rememberAsyncImagePainter(model = item.cover.feed),

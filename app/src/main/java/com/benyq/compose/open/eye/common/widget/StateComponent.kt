@@ -7,6 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.benyq.compose.open.eye.common.noRippleClick
@@ -28,13 +29,15 @@ fun Loading(modifier: Modifier = Modifier, title: String = "正在加载") {
 
 
 @Composable
-fun Error(modifier: Modifier = Modifier, title: String = "加载失败", retry: ()->Unit = {}) {
+fun Error(modifier: Modifier = Modifier, title: String = "加载失败",
+          color: Color = Color.Black,
+          retry: ()->Unit = {}) {
     Column(
         modifier = modifier.noRippleClick { retry() },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        Text(text = title)
+        Text(text = title, color = color)
     }
 }
 
