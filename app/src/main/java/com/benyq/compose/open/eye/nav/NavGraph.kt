@@ -13,6 +13,7 @@ import com.benyq.compose.open.eye.business.SplashScreen
 import com.benyq.compose.open.eye.business.daily.DailyScreen
 import com.benyq.compose.open.eye.business.main.MainScreen
 import com.benyq.compose.open.eye.business.video.VideoScreen
+import com.benyq.compose.open.eye.business.video.VideoSettingScreen
 import com.benyq.compose.open.eye.business.video.VideoViewModel
 import com.benyq.compose.open.eye.common.L
 import com.benyq.compose.open.eye.model.ItemData
@@ -44,6 +45,9 @@ fun NavGraph(startDestination: String = Destinations.Splash.path) {
                 val viewModel: VideoViewModel = viewModel()
                 viewModel.setItemData(data)
                 VideoScreen(viewModel)
+            }
+            composable(Destinations.VideoSetting.path) {
+                VideoSettingScreen()
             }
         }
     }

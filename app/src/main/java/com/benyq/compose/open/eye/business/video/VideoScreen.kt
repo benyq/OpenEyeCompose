@@ -1,5 +1,8 @@
 package com.benyq.compose.open.eye.business.video
 
+import android.net.Uri
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.ExperimentalTransitionApi
 import androidx.compose.animation.core.LinearEasing
@@ -30,6 +33,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
@@ -51,6 +55,7 @@ import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -65,6 +70,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -73,17 +79,26 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.datastore.preferences.protobuf.Internal.BooleanList
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.rememberAsyncImagePainter
 import com.benyq.compose.open.eye.R
+import com.benyq.compose.open.eye.business.AppConfig
 import com.benyq.compose.open.eye.common.L
+import com.benyq.compose.open.eye.common.NetworkType
 import com.benyq.compose.open.eye.common.SetAppearanceStatusBar
+import com.benyq.compose.open.eye.common.getNetworkType
 import com.benyq.compose.open.eye.common.noRippleClick
 import com.benyq.compose.open.eye.common.widget.Error
 import com.benyq.compose.open.eye.model.ItemData
 import com.benyq.compose.open.eye.model.ReplyData
+import com.benyq.compose.open.eye.nav.Destinations
 import com.benyq.compose.open.eye.nav.LocalNavController
 import com.benyq.compose.open.eye.tools.DateTool
 import kotlinx.coroutines.android.awaitFrame
@@ -131,6 +146,7 @@ fun VideoScreen(viewModel: VideoViewModel = viewModel()) {
             }
 
             Video(
+                itemData.playUrl,
                 modifier = Modifier
                     .padding(vertical = 10.dp)
                     .fillMaxWidth()
@@ -516,10 +532,59 @@ private fun VideoItemEnd() {
 
 
 @Composable
-private fun Video(modifier: Modifier = Modifier) {
-    Box(modifier = modifier.background(Color.Cyan)) {
+private fun Video(url: String, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
 
+    fun isAutoPlay(): Boolean {
+        val networkType = context.getNetworkType()
+        return when(networkType) {
+            NetworkType.WIFI -> AppConfig.getAutoPlayOnWIFI()
+            NetworkType.CELLULAR -> AppConfig.getAutoPlayOnMobile()
+            NetworkType.NONE -> false
+        }
     }
+
+    val exoPlayer = remember(context) {
+        ExoPlayer.Builder(context).build().apply {
+            playWhenReady = isAutoPlay()
+        }
+    }
+
+    Box(modifier = modifier.fillMaxWidth()) {
+        // PlayerView
+        AndroidView(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            factory = { context ->
+                PlayerView(context).apply {
+                    this.player = exoPlayer
+                    layoutParams =
+                        FrameLayout.LayoutParams(
+                            ViewGroup.LayoutParams
+                                .MATCH_PARENT,
+                            ViewGroup.LayoutParams
+                                .MATCH_PARENT
+                        )
+                }
+            }
+        )
+    }
+
+    LaunchedEffect(url) {
+        exoPlayer.run {
+            setMediaItem(MediaItem.fromUri(Uri.parse(url)))
+            prepare()
+            seekTo(0L)
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            exoPlayer.release()
+        }
+    }
+
 }
 
 @Composable
