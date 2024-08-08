@@ -4,11 +4,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
-import com.benyq.compose.open.eye.common.BaseViewModel
-import com.benyq.compose.open.eye.common.DataState
-import com.benyq.compose.open.eye.common.mvi.UiEvent
-import com.benyq.compose.open.eye.common.mvi.UiState
-import com.benyq.compose.open.eye.common.mvi.extension.containers
+import com.benyq.compose.open.eye.base.common.BaseViewModel
+import com.benyq.compose.open.eye.base.common.DataState
+import com.benyq.compose.open.eye.base.common.mvi.UiEvent
+import com.benyq.compose.open.eye.base.common.mvi.UiState
+import com.benyq.compose.open.eye.base.common.mvi.extension.containers
 import com.benyq.compose.open.eye.http.openEyeApi
 import com.benyq.compose.open.eye.model.Author
 import com.benyq.compose.open.eye.model.Consumption
@@ -79,8 +79,6 @@ class VideoViewModel: BaseViewModel() {
         container.updateState {
             copy(replyType = ReplyType(newReplyType))
         }
-
-        container.sendEvent(VideoEvent.Refresh)
     }
 
 }
@@ -110,7 +108,8 @@ private val defaultItemData = ItemData(
         name = "benyq",
         description = "benyq",
         latestReleaseTime = 0L
-    )
+    ),
+    playInfo = null
 )
 
 data class VideoState(
@@ -136,9 +135,4 @@ data class ReplyType(val type: VideoReply) {
             "按热度"
         }
     }
-}
-
-
-sealed class VideoEvent: UiEvent {
-    data object Refresh: VideoEvent()
 }

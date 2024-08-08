@@ -7,4 +7,7 @@ sealed class Destinations(val path: String) {
         fun createRoute(data: String) = path.replace("{data}", data)
     }
     data object VideoSetting : Destinations("VideoSetting")
+    data object VideoFullScreen : Destinations("VideoFullScreen/?data={data}"){
+        fun createRoute(data: String) = path.replace("{data}", data)
+    }
 }

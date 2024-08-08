@@ -9,13 +9,15 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.benyq.compose.open.eye.base.common.L
 import com.benyq.compose.open.eye.business.SplashScreen
-import com.benyq.compose.open.eye.business.daily.DailyScreen
 import com.benyq.compose.open.eye.business.main.MainScreen
+import com.benyq.compose.open.eye.business.video.VideoFullScreen
+import com.benyq.compose.open.eye.business.video.VideoParams
+import com.benyq.compose.open.eye.business.video.VideoPlayerViewModel
 import com.benyq.compose.open.eye.business.video.VideoScreen
 import com.benyq.compose.open.eye.business.video.VideoSettingScreen
 import com.benyq.compose.open.eye.business.video.VideoViewModel
-import com.benyq.compose.open.eye.common.L
 import com.benyq.compose.open.eye.model.ItemData
 import com.google.gson.Gson
 import java.net.URLDecoder
@@ -42,12 +44,27 @@ fun NavGraph(startDestination: String = Destinations.Splash.path) {
                 val dataJson = it.arguments?.getString("data") ?: ""
                 val json = URLDecoder.decode(dataJson, "utf-8")
                 val data = gson.fromJson(json, ItemData::class.java)
+
                 val viewModel: VideoViewModel = viewModel()
+                val playerViewModel: VideoPlayerViewModel = viewModel()
+                playerViewModel.createVideoParams(data)
                 viewModel.setItemData(data)
-                VideoScreen(viewModel)
+
+                VideoScreen(viewModel, playerViewModel)
             }
             composable(Destinations.VideoSetting.path) {
                 VideoSettingScreen()
+            }
+            composable(Destinations.VideoFullScreen.path) {
+
+                val dataJson = it.arguments?.getString("data") ?: ""
+                val json = URLDecoder.decode(dataJson, "utf-8")
+                val data = gson.fromJson(json, ItemData::class.java)
+
+                val playerViewModel: VideoPlayerViewModel = viewModel()
+                playerViewModel.createVideoParams(data)
+
+                VideoFullScreen(playerViewModel)
             }
         }
     }

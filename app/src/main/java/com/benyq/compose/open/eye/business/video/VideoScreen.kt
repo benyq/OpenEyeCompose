@@ -1,18 +1,7 @@
 package com.benyq.compose.open.eye.business.video
 
-import android.net.Uri
-import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.ExperimentalTransitionApi
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateValueAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
@@ -40,26 +29,32 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -77,38 +72,41 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.datastore.preferences.protobuf.Internal.BooleanList
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.media3.common.MediaItem
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.rememberAsyncImagePainter
 import com.benyq.compose.open.eye.R
 import com.benyq.compose.open.eye.business.AppConfig
-import com.benyq.compose.open.eye.common.L
-import com.benyq.compose.open.eye.common.NetworkType
-import com.benyq.compose.open.eye.common.SetAppearanceStatusBar
-import com.benyq.compose.open.eye.common.getNetworkType
+import com.benyq.compose.open.eye.base.tools.DateTool
 import com.benyq.compose.open.eye.common.noRippleClick
-import com.benyq.compose.open.eye.common.widget.Error
+import com.benyq.compose.open.eye.common.Error
+import com.benyq.compose.open.eye.common.SetAppearanceStatusBar
 import com.benyq.compose.open.eye.model.ItemData
 import com.benyq.compose.open.eye.model.ReplyData
 import com.benyq.compose.open.eye.nav.Destinations
 import com.benyq.compose.open.eye.nav.LocalNavController
-import com.benyq.compose.open.eye.tools.DateTool
+import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.android.awaitFrame
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.net.URLEncoder
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
+    ExperimentalMaterialApi::class
+)
 @Composable
-fun VideoScreen(viewModel: VideoViewModel = viewModel()) {
+fun VideoScreen(
+    viewModel: VideoViewModel = viewModel(),
+    playViewModel: VideoPlayerViewModel = viewModel()
+) {
     val navController = LocalNavController.current
+    val context = LocalContext.current
+    val sheetState = rememberModalBottomSheetState()
+    var showBottomSheet = remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val itemData by viewModel.itemData.collectAsState()
 
@@ -145,12 +143,36 @@ fun VideoScreen(viewModel: VideoViewModel = viewModel()) {
                 Icon(imageVector = Icons.Rounded.Share, contentDescription = "分享")
             }
 
-            Video(
-                itemData.playUrl,
+            LaunchedEffect(key1 = Unit) {
+                coroutineScope.launch {
+                    playViewModel.eventFlow.collect {
+                        when (it) {
+                            is VideoEvent.MoreActionEvent -> {
+                                showBottomSheet.value = true
+                            }
+
+                            is VideoEvent.FullscreenEvent -> {
+                                val json = Gson().toJson(itemData)
+                                navController.navigate(
+                                    Destinations.VideoFullScreen.createRoute(
+                                        URLEncoder.encode(json, "utf-8")
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            val videoParam = playViewModel.videoParam.collectAsState()
+            VideoPlayer(
+                videoParam.value,
+                playViewModel.playbackController,
                 modifier = Modifier
                     .padding(vertical = 10.dp)
                     .fillMaxWidth()
-                    .aspectRatio(16 / 9f)
+                    .aspectRatio(16 / 9f),
+                playWhenReady = AppConfig.isAutoPlay(context)
             )
 
             val pagerState = rememberPagerState { 2 }
@@ -211,6 +233,41 @@ fun VideoScreen(viewModel: VideoViewModel = viewModel()) {
                     1 -> VideoComment(viewModel, modifier = Modifier.fillMaxSize())
                 }
             }
+
+            if (showBottomSheet.value) {
+
+                ModalBottomSheet(
+                    onDismissRequest = {
+                        showBottomSheet.value = false
+                    },
+                    sheetState = sheetState
+                ) {
+
+                    Column(modifier = Modifier.padding(horizontal = 15.dp)) {
+                        Row(modifier = Modifier.height(60.dp), verticalAlignment = Alignment.CenterVertically) {
+                            BottomSheetItem("播放设置", painterResource(id = R.drawable.ic_round_settings_24), padding = 3.dp) {
+                                hideBottomSheet(coroutineScope, sheetState, showBottomSheet)
+                                navController.navigate(Destinations.VideoSetting.path)
+                            }
+                        }
+                        HorizontalDivider(thickness = 0.5.dp, color = Color.Black.copy(alpha = 0.1f))
+                        Row(modifier = Modifier.height(60.dp), verticalAlignment = Alignment.CenterVertically) {
+                            BottomSheetItem("分享", painterResource(id = R.drawable.ic_ios_share_24)) {
+                                hideBottomSheet(coroutineScope, sheetState, showBottomSheet)
+                            }
+                        }
+                        HorizontalDivider(thickness = 0.5.dp, color = Color.Black.copy(alpha = 0.1f))
+                        Text(text = "取消", fontSize = 14.sp, modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp)
+                            .wrapContentHeight(Alignment.CenterVertically)
+                            .wrapContentWidth(Alignment.CenterHorizontally)
+                            .noRippleClick {
+                                hideBottomSheet(coroutineScope, sheetState, showBottomSheet)
+                            })
+                    }
+                }
+            }
         }
     }
 }
@@ -222,6 +279,7 @@ private fun VideoDetail(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.container.uiStateFlow.collectAsState()
+    val navController = LocalNavController.current
 
     LazyColumn(modifier = modifier) {
         item {
@@ -284,7 +342,12 @@ private fun VideoDetail(
                 item = data,
                 modifier = Modifier.padding(horizontal = 15.dp, vertical = 15.dp)
             ) {
-                viewModel.setItemData(data)
+                val json = Gson().toJson(data)
+                navController.navigate(Destinations.Video.createRoute(URLEncoder.encode(json, "utf-8"))) {
+                    popUpTo(Destinations.Main.path) {
+                        inclusive = false
+                    }
+                }
             }
         }
 
@@ -437,9 +500,12 @@ private fun VideoComment(viewModel: VideoViewModel, modifier: Modifier = Modifie
 
                 is LoadState.Error -> {
                     item {
-                        Error(modifier = Modifier.fillMaxWidth(), color = Color.White, retry = {
-                            currentReply.retry()
-                        })
+                        Error(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = Color.White,
+                            retry = {
+                                currentReply.retry()
+                            })
                     }
                 }
 
@@ -532,62 +598,6 @@ private fun VideoItemEnd() {
 
 
 @Composable
-private fun Video(url: String, modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-
-    fun isAutoPlay(): Boolean {
-        val networkType = context.getNetworkType()
-        return when(networkType) {
-            NetworkType.WIFI -> AppConfig.getAutoPlayOnWIFI()
-            NetworkType.CELLULAR -> AppConfig.getAutoPlayOnMobile()
-            NetworkType.NONE -> false
-        }
-    }
-
-    val exoPlayer = remember(context) {
-        ExoPlayer.Builder(context).build().apply {
-            playWhenReady = isAutoPlay()
-        }
-    }
-
-    Box(modifier = modifier.fillMaxWidth()) {
-        // PlayerView
-        AndroidView(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
-            factory = { context ->
-                PlayerView(context).apply {
-                    this.player = exoPlayer
-                    layoutParams =
-                        FrameLayout.LayoutParams(
-                            ViewGroup.LayoutParams
-                                .MATCH_PARENT,
-                            ViewGroup.LayoutParams
-                                .MATCH_PARENT
-                        )
-                }
-            }
-        )
-    }
-
-    LaunchedEffect(url) {
-        exoPlayer.run {
-            setMediaItem(MediaItem.fromUri(Uri.parse(url)))
-            prepare()
-            seekTo(0L)
-        }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            exoPlayer.release()
-        }
-    }
-
-}
-
-@Composable
 fun AnimatedText(targetText: String, modifier: Modifier = Modifier) {
     var visible by remember { mutableStateOf(false) }
     val transition = updateTransition(targetState = visible, label = "visibility")
@@ -602,7 +612,7 @@ fun AnimatedText(targetText: String, modifier: Modifier = Modifier) {
             visible = false
             awaitFrame()
             visible = true
-        }else {
+        } else {
             visible = true
         }
     }
@@ -624,6 +634,25 @@ fun AnimatedText(targetText: String, modifier: Modifier = Modifier) {
     )
 }
 
+
+@Composable
+private fun BottomSheetItem(title: String, painter: Painter, modifier: Modifier = Modifier, padding: Dp = 5.dp, tint: Color = Color.Black, onClick: ()->Unit = {}) {
+    Column(modifier = modifier.width(60.dp).noRippleClick { onClick() }, verticalArrangement = Arrangement.spacedBy(padding), horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(painter = painter, contentDescription = title, modifier = Modifier.size(20.dp), tint = tint)
+        Text(text = title, fontSize = 12.sp)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+private fun hideBottomSheet(coroutineScope: CoroutineScope, sheetState: SheetState, showBottomSheet: MutableState<Boolean>) {
+    coroutineScope
+        .launch { sheetState.hide() }
+        .invokeOnCompletion {
+            if (!sheetState.isVisible) {
+                showBottomSheet.value = false
+            }
+        }
+}
 
 @Composable
 @Preview

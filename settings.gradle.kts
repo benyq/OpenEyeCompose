@@ -22,4 +22,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "OpenEyeCompose"
 include(":app")
- 
+include(":player")
+include(":base")

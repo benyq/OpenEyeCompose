@@ -5,7 +5,6 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Icon
@@ -40,6 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.benyq.compose.open.eye.R
+import com.benyq.compose.open.eye.base.tools.showToast
 import com.benyq.compose.open.eye.business.daily.DailyScreen
 import com.benyq.compose.open.eye.business.disvocery.DiscoverScreen
 import com.benyq.compose.open.eye.business.hot.HotScreen
@@ -48,7 +47,6 @@ import com.benyq.compose.open.eye.common.SetAppearanceStatusBar
 import com.benyq.compose.open.eye.common.noRippleClick
 import com.benyq.compose.open.eye.nav.Destinations
 import com.benyq.compose.open.eye.nav.LocalNavController
-import com.benyq.compose.open.eye.tools.showToast
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)

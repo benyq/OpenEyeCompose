@@ -45,15 +45,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.rememberAsyncImagePainter
-import com.benyq.compose.open.eye.common.L
 import com.benyq.compose.open.eye.common.noRippleClick
-import com.benyq.compose.open.eye.common.widget.Error
-import com.benyq.compose.open.eye.common.widget.Loading
+import com.benyq.compose.open.eye.common.Error
+import com.benyq.compose.open.eye.common.Loading
 import com.benyq.compose.open.eye.model.Item
 import com.benyq.compose.open.eye.model.ItemData
 import com.benyq.compose.open.eye.nav.Destinations
 import com.benyq.compose.open.eye.nav.LocalNavController
-import com.benyq.compose.open.eye.tools.DateTool
 import com.benyq.compose.open.eye.ui.theme.Black54
 import com.benyq.compose.open.eye.ui.theme.White54
 import com.google.gson.Gson
@@ -89,7 +87,6 @@ fun DailyScreen(viewModel: DailyViewModel = viewModel()) {
                     .align(Alignment.CenterEnd)
                     .size(30.dp)
                     .noRippleClick {
-
                     }
             )
         }
@@ -150,14 +147,20 @@ fun DailyScreen(viewModel: DailyViewModel = viewModel()) {
             when (dailyData.loadState.refresh) {
                 is LoadState.Loading -> {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        Loading(modifier = Modifier.align(Alignment.Center))
+                        Loading(
+                            modifier = Modifier.align(
+                                Alignment.Center
+                            )
+                        )
                     }
                 }
 
                 is LoadState.Error -> {
-                    Error(title = "加载失败, 点击重新加载", retry = {
-                        dailyData.refresh()
-                    })
+                    Error(
+                        title = "加载失败, 点击重新加载: ${dailyData.loadState.refresh}",
+                        retry = {
+                            dailyData.refresh()
+                        })
                 }
 
                 is LoadState.NotLoading -> {}
@@ -195,7 +198,7 @@ private fun DailyItem(item: ItemData?, modifier: Modifier = Modifier, onClick: (
                 color = Color.White
             )
             Text(
-                text = DateTool.formatVideoDuration(item.duration * 1000L),
+                text = com.benyq.compose.open.eye.base.tools.DateTool.formatVideoDuration(item.duration * 1000L),
                 modifier = Modifier
                     .padding(10.dp)
                     .clip(RoundedCornerShape(5.dp))

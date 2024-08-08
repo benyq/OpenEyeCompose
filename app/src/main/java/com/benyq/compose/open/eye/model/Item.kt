@@ -28,6 +28,7 @@ data class ItemData(
     val consumption: Consumption,
     val urls: List<String>?,
     val playUrl: String,
+    val playInfo: List<PlayInfo>?,
 ) : Parcelable
 
 @Parcelize
@@ -61,3 +62,20 @@ data class Consumption(
     val shareCount: Int,
     val replyCount: Int,
 ) : Parcelable
+
+@Parcelize
+data class PlayInfo(
+    val width: Int,
+    val height: Int,
+    val name: String,
+    val type: String,
+    val url: String,
+    val urlList: List<Item>?,
+) : Parcelable {
+    @Parcelize
+    data class Item(
+        val name: String,
+        val url: String,
+        val size: Long,
+    ): Parcelable
+}

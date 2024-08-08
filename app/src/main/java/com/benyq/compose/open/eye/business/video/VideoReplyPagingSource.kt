@@ -13,7 +13,10 @@ class VideoReplyPagingSource(private val openEyeApi: OpenEyeApi, private val typ
         }else openEyeApi.getVideoReply(videoId = param(), lastId = pageKey)
 
         val data = reply.itemList.filter { it.type == "reply"  }.map { it.data }
-        return ReturnData(data, if (data.isEmpty()) null else data.last().sequence)
+        return ReturnData(
+            data,
+            if (data.isEmpty()) null else data.last().sequence
+        )
     }
 
 }
