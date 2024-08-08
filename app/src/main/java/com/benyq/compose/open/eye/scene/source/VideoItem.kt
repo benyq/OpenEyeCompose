@@ -18,8 +18,6 @@ data class VideoItem(
     val videoHeight: Int,
     val duration: Long,
     val byteSize: Long,
-    val stat: Stat,
-    val poster: Poster,
 ): Serializable {
 
     var mediaSource: MediaSource? = null
@@ -47,22 +45,16 @@ data class VideoItem(
         private fun createMediaSource(videoItem: VideoItem): MediaSource {
             return MediaSource(videoItem.id, videoItem.videoUrl, videoItem.coverUrl, videoItem.videoWidth, videoItem.videoHeight, videoItem.duration, videoItem.byteSize)
         }
+
+        val empty = VideoItem(
+            id = "",
+            title = "",
+            coverUrl = "",
+            videoUrl = "",
+            videoWidth = 0,
+            videoHeight = 0,
+            duration = 0L,
+            byteSize = 0L
+        )
     }
-
-    data class Stat(
-        //点赞
-        val like: String = "",
-        val coin: String = "",
-        val reply: String = "",
-        //收藏
-        val favorite: String = "",
-        //分享
-        val share: String = "",
-    ): Serializable
-
-    data class Poster(
-        val avatar: String,
-        val uid: Long,
-        val nickName: String,
-    ): Serializable
 }

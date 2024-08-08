@@ -6,11 +6,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
-import com.benyq.compose.open.eye.base.common.L
 import com.benyq.compose.open.eye.scene.PlayScene
 import com.benyq.compose.open.eye.scene.layer.BrightnessVolumeLayer
 import com.benyq.compose.open.eye.scene.layer.GestureLayer
@@ -18,36 +16,16 @@ import com.benyq.compose.open.eye.scene.layer.PlayPauseLayer
 import com.benyq.compose.open.eye.scene.layer.SpeedSelectDialogLayer
 import com.benyq.compose.open.eye.scene.layer.TimeProgressBarLayer
 import com.benyq.compose.open.eye.scene.layer.TitleBarLayer
+import com.benyq.compose.open.eye.scene.source.VideoItem
 import com.benyq.tikbili.player.helper.DisplayModeHelper
 import com.benyq.tikbili.player.playback.PlaybackController
 import com.benyq.tikbili.player.playback.VideoLayerHost
 import com.benyq.tikbili.player.playback.VideoView
-import com.benyq.tikbili.player.source.MediaSource
 
-data class VideoParams(
-    val tag: String,
-    val url: String,
-    val cover: String,
-    val width: Int, val height: Int,
-    val duration: Long,
-    val byteSize: Long,
-) {
-    companion object {
-        val empty = VideoParams(
-            tag = "",
-            url = "",
-            cover = "",
-            width = 0,
-            height = 0,
-            duration = 0L,
-            byteSize = 0L
-        )
-    }
-}
 
 @Composable
 fun VideoPlayer(
-    param: VideoParams,
+    param: VideoItem,
     playbackController: PlaybackController,
     modifier: Modifier = Modifier,
     fullscreen: Boolean = false,
@@ -55,12 +33,7 @@ fun VideoPlayer(
 ) {
 
     DisposableEffect(param) {
-        playbackController.videoView()?.bindDataSource(MediaSource(
-            param.tag,
-            param.url,
-            param.cover,
-            param.width, param.height, param.duration, param.byteSize
-        ))
+        playbackController.videoView()?.bindDataSource(VideoItem.toMediaSource(param))
         playbackController.startPlayback(playWhenReady)
         onDispose {
             playbackController.stopPlayback()
@@ -94,4 +67,5 @@ fun VideoPlayer(
         })
     }
 }
+
 

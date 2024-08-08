@@ -6,6 +6,7 @@ import com.benyq.compose.open.eye.base.common.L
 import com.benyq.compose.open.eye.base.common.mvi.UiEvent
 import com.benyq.compose.open.eye.model.ItemData
 import com.benyq.compose.open.eye.scene.SceneEvent
+import com.benyq.compose.open.eye.scene.source.VideoItem
 import com.benyq.tikbili.player.dispather.Event
 import com.benyq.tikbili.player.dispather.EventDispatcher
 import com.benyq.tikbili.player.playback.PlaybackController
@@ -47,21 +48,24 @@ class VideoPlayerViewModel : BaseViewModel() {
         })
     }
 
-    private val _videoParam = MutableStateFlow(VideoParams.empty)
+    private val _videoParam = MutableStateFlow(VideoItem.empty)
 
     val videoParam = _videoParam.asStateFlow()
 
     fun createVideoParams(data: ItemData) {
         val playInfo = data.playInfo?.find { it.type == "high" }
-        _videoParam.value = VideoParams(
-            tag = data.id.toString(),
-            url = data.playUrl,
-            width = playInfo?.width ?: 0,
-            height = playInfo?.height ?: 0,
+        _videoParam.value = VideoItem(
+            id = data.id.toString(),
+            videoUrl = data.playUrl,
+            title = data.title,
+            videoWidth = playInfo?.width ?: 0,
+            videoHeight = playInfo?.height ?: 0,
             duration = data.duration * 1000L,
-            cover = data.cover.feed,
+            coverUrl = data.cover.feed,
             byteSize = playInfo?.urlList?.first()?.size ?: 0L,
-        )
+        ).apply {
+
+        }
     }
 }
 

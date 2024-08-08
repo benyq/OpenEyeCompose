@@ -9,11 +9,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.benyq.compose.open.eye.base.common.L
 import com.benyq.compose.open.eye.business.SplashScreen
 import com.benyq.compose.open.eye.business.main.MainScreen
 import com.benyq.compose.open.eye.business.video.VideoFullScreen
-import com.benyq.compose.open.eye.business.video.VideoParams
 import com.benyq.compose.open.eye.business.video.VideoPlayerViewModel
 import com.benyq.compose.open.eye.business.video.VideoScreen
 import com.benyq.compose.open.eye.business.video.VideoSettingScreen
@@ -21,7 +19,6 @@ import com.benyq.compose.open.eye.business.video.VideoViewModel
 import com.benyq.compose.open.eye.model.ItemData
 import com.google.gson.Gson
 import java.net.URLDecoder
-import java.net.URLEncoder
 
 val LocalNavController = compositionLocalOf<NavHostController> { error("No NavController provided") }
 

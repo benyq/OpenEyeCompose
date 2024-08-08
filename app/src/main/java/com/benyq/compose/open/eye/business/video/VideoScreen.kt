@@ -394,7 +394,7 @@ private fun VideoRelativeItem(item: ItemData, modifier: Modifier = Modifier, act
         }
         Box {
             Image(
-                painter = rememberAsyncImagePainter(model = item.cover.feed),
+                painter = rememberAsyncImagePainter(model = item.cover.detail),
                 contentDescription = null, modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(16 / 9f)
